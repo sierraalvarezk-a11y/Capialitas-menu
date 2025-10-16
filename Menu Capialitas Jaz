@@ -1,1 +1,77 @@
 
+<!DOCTYPE html>
+window.open(url, '_blank');
+}
+
+
+// Form submit → WhatsApp al vendedor
+$('#orderForm').addEventListener('submit', e=>{
+e.preventDefault();
+if(cart.length===0){ alert('Tu carrito está vacío.'); return; }
+const fd = new FormData(e.target);
+const nombre = fd.get('nombre');
+const direccion = fd.get('direccion');
+const zona = fd.get('zona');
+const cuando = fd.get('cuando');
+const tel = fd.get('telefono');
+const pago = fd.get('pago');
+const notas = fd.get('notas');
+
+
+const d = cuando? new Date(cuando): null;
+if(zona==='Otra'){ $('#zonaWarn').classList.remove('hidden'); } else { $('#zonaWarn').classList.add('hidden'); }
+const dentroHorario = d? isServiceTime(d): false;
+
+
+const lines = [];
+lines.push(`Nuevo pedido — Capialitas Jaz`);
+lines.push('');
+cart.forEach((item,idx)=>{
+lines.push(`${idx+1}. ${item.qty} x ${item.nombre} — ${money(item.precio*item.qty)}`);
+const cfg = formatConfig(item.config); if(cfg) lines.push(` · ${cfg}`);
+});
+const total = cart.reduce((s,i)=>s+i.precio*i.qty,0);
+lines.push('');
+lines.push(`Total: ${money(total)}`);
+if(pago==='apartado'){ lines.push(`Apartado 50%: ${money(Math.round(total*0.5))}`); }
+lines.push('');
+lines.push(`Cliente: ${nombre}`);
+if(tel) lines.push(`Tel: ${tel}`);
+lines.push(`Dirección: ${direccion}`);
+lines.push(`Zona: ${zona}${zona==='Otra'?' (posible fuera de zona)':''}`);
+if(cuando){ lines.push(`Entrega: ${new Date(cuando).toLocaleString('es-MX')}${dentroHorario?'':' (fuera de horario, pre-orden)'}`); }
+if(notas) lines.push(`Notas: ${notas}`);
+lines.push('');
+lines.push(`Pago: ${pago==='efectivo'?'Efectivo a la entrega':pago==='transferencia'?'Transferencia (completo)':pago==='apartado'?'Apartado 50%':'Pago en línea'}`);
+if(pago==='online'){
+lines.push(`Link pago total: ${PAYMENT_URL_FULL}`);
+lines.push(`Link 50%: ${PAYMENT_URL_DEPOSIT}`);
+}
+lines.push('Confirmo disponibilidad y hora de entrega.');
+
+
+const text = encodeURIComponent(lines.join('
+'));
+const url = `https://wa.me/${SELLER_WA}?text=${text}`;
+window.open(url, '_blank');
+});
+
+
+// Mostrar/ocultar caja de pago online
+$$('input[name="pago"]').forEach(r=>{
+r.addEventListener('change', ()=>{
+$('#onlinePayBox').classList.toggle('hidden', r.value!=='online' || !r.checked);
+});
+});
+
+
+// Inicializar
+renderMenu();
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
+
+
+
+</html>
